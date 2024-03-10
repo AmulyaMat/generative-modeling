@@ -40,7 +40,22 @@ def interpolate_latent_space(gen, path):
     # 3. Save out an image holding all 100 samples.
     # Use torchvision.utils.save_image to save out the visualization.
     ##################################################################
-    pass
+    linspace = torch.linspace(-1, 1, 10)
+    grid_x, grid_y = torch.meshgrid(linspace, linspace)
+    grid_x, grid_y = grid_x.flatten(), grid_y.flatten()
+
+    # Initialize the rest of the z vector (dim-2 dimensions) with zeros or any fixed value
+    fixed_values = torch.zeros((10**2, 128 - 2))
+
+    # Concatenate the interpolated values with the fixed part of the z vector
+    z = torch.cat([grid_x.unsqueeze(-1), grid_y.unsqueeze(-1), fixed_values], dim=1).to(gen.device)
+
+    # Generate images
+    images = gen.forward_given_samples(z)  # Assuming gen returns images in the range [-1, 1]
+    images = (images + 1) / 2  # Rescale images to [0, 1]
+
+    # Save the images in a grid
+    save_image(images, path, nrow=10)
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
