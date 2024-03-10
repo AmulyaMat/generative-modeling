@@ -28,8 +28,12 @@ def get_optimizers_and_schedulers(gen, disc):
     # The learning rate for the generator should be decayed to 0 over
     # 100K iterations.
     ##################################################################
-    scheduler_discriminator = None
-    scheduler_generator = None
+    # Define custom lambda functions for learning rate decay
+    lambda_disc = lambda iteration: 1 - iteration / 500000  # Decay over 500K iterations
+    lambda_gen = lambda iteration: 1 - iteration / 100000  # Decay over 100K iterations
+    
+    scheduler_discriminator = torch.optim.lr_scheduler.LambdaLR(optim_discriminator, lr_lambda=lambda_disc)
+    scheduler_generator = torch.optim.lr_scheduler.LambdaLR(optim_generator, lr_lambda=lambda_gen)
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -105,8 +109,11 @@ def train_model(
                 # 2. Compute discriminator output on the train batch.
                 # 3. Compute the discriminator output on the generated data.
                 ##################################################################
-                discrim_real = None
-                discrim_fake = None
+                z = torch.randn(batch_size, z_dimension, device="cuda")
+                fake_batch = gen(z)
+                discrim_real = disc(train_batch)
+                discrim_fake = disc(fake_batch)
+
                 ##################################################################
                 #                          END OF YOUR CODE                      #
                 ##################################################################
@@ -115,8 +122,15 @@ def train_model(
                 # TODO 1.5 Compute the interpolated batch and run the
                 # discriminator on it.
                 ###################################################################
-                interp = None
-                discrim_interp = None
+                epsilon = torch.rand(batch_size, 1, 1, 1, device="cuda")
+                epsilon = epsilon.expand_as(train_batch)
+                
+                # Compute interpolated batch
+                interp = epsilon * train_batch + (1 - epsilon) * fake_batch.detach()
+                interp.requires_grad_(True)
+                
+                # Compute discriminator output on interpolated batch
+                discrim_interp = disc(interp)
                 ##################################################################
                 #                          END OF YOUR CODE                      #
                 ##################################################################
@@ -136,8 +150,9 @@ def train_model(
                     # TODO 1.2: Compute generator and discriminator output on
                     # generated data.
                     ###################################################################
-                    fake_batch = None
-                    discrim_fake = None
+                    z = torch.randn(batch_size, latent_dim, device="cuda")
+                    fake_batch = gen(z)
+                    discrim_fake = disc(fake_batch)
                     ##################################################################
                     #                          END OF YOUR CODE                      #
                     ##################################################################
@@ -156,7 +171,11 @@ def train_model(
                         # TODO 1.2: Generate samples using the generator.
                         # Make sure they lie in the range [0, 1]!
                         ##################################################################
-                        generated_samples = None
+                        
+                        z = torch.randn(100, latent_dim, device="cuda")  # Generate 100 samples, adjust `latent_dim` accordingly.
+                        generated_samples = gen(z)
+                        generated_samples = (generated_samples + 1) / 2  # Rescale images to [0, 1]
+                        
                         ##################################################################
                         #                          END OF YOUR CODE                      #
                         ##################################################################
