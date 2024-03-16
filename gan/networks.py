@@ -206,9 +206,9 @@ class ResBlock(torch.jit.ScriptModule):
         # TODO 1.1: Setup the network layers
         ##################################################################
         self.layers = nn.Sequential(
-            nn.ReLU()
-            nn.Conv2d(in_channels, n_filters, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
-            nn.ReLU()
+            nn.ReLU(),
+            nn.Conv2d(in_channels, n_filters, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.ReLU(),
             nn.Conv2d(in_channels, n_filters, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
             )
         ##################################################################
@@ -296,9 +296,9 @@ class Generator(torch.jit.ScriptModule):
         ##################################################################
         self.dense = nn.Linear(in_features=128, out_features=2048, bias=True)
         self.layers = nn.Sequential(
-            ResBlockUp(),
-            ResBlockUp(),
-            ResBlockUp(),
+            ResBlockUp(input_channels, kernel_size=3, n_filters=128),
+            ResBlockUp(input_channels, kernel_size=3, n_filters=128),
+            ResBlockUp(input_channels, kernel_size=3, n_filters=128),
             nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
             nn.ReLU(),
             nn.Conv2d(128, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
