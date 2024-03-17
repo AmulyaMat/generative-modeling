@@ -17,8 +17,9 @@ from utils import *
 def ae_loss(model, x):
     ##################################################################
     # TODO 2.2: Fill in MSE loss between x and its reconstruction.
-    ##################################################################
-    loss = None
+    #################################################################
+    recon = model.decoder(model.encoder(x))
+    loss = 1/2*F.mse_loss(recon, x, reduction = "sum"))
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -38,9 +39,9 @@ def vae_loss(model, x, beta = 1):
     # closed form, you can find the formula here:
     # (https://stats.stackexchange.com/questions/318748/deriving-the-kl-divergence-loss-for-vaes).
     ##################################################################
-    total_loss = None
-    recon_loss = None
-    kl_loss = None
+    total_loss = recon_loss + kl_loss
+    recon_loss = ae_loss(model, x)
+    kl_loss = 
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
