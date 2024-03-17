@@ -63,18 +63,19 @@ class DownSampleConv2D(torch.jit.ScriptModule):
         # 3. Take the average across dimension 0, apply convolution,
         # and return the output
         ##################################################################
-        unshuffled = self.pixel_shuffle(x)
-        batch_size, channels, height, width = unshuffled.size()
-
-        reshaped = unshuffled.view(batch_size, channels // (self.downscale_ratio ** 2), self.downscale_ratio ** 2, height, width)
-        reshaped = reshaped.permute(2, 0, 1, 3, 4).contiguous()  # Brings the downscale factor squared to the front for averaging
+        # Step 1
+        x_unshuffled = F.pixel_unshuffle(x, self.downscale_ratio)
         
-        # Take the average across dimension 0 (the downscale factor squared dimension)
-        avg_spatial = torch.mean(reshaped, dim=0)
+        # Step 2
+        x_split = x_unshuffled.reshape(x_unshuffled.shape[0], 
+                                       -1, 
+                                       int(self.downscale_ratio**2),
+                                       x_unshuffled.shape[2], 
+                                       x_unshuffled.shape[3])
         
-        out = self.conv(avg_spatial)
-        
-        return out
+        # Step 3
+        x_avg_pool = torch.mean(x_split, dim=2)
+        return self.conv(x_avg_pool)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -155,12 +156,12 @@ class ResBlockDown(torch.jit.ScriptModule):
         ##################################################################
         self.layers = nn.Sequential(
             nn.ReLU(),
-            nn.Conv2d(input_channels, n_filters, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Conv2d(input_channels, n_filters, kernel_size=(3,3), stride=(1,1), padding=(1,1)),
             nn.ReLU(),
-            DownSampleConv2D(n_filters, n_filters, kernel_size=kernel_size, stride=1, padding=0, upsample_ratio=2)
-            )
-        self.downsample_residual = DownSampleConv2D(input_channels, n_filters, kernel_size=1, stride=1, padding=0, upsample_ratio=2)
+            DownSampleConv2D(n_filters, kernel_size, n_filters=n_filters, padding=1)
+        )
 
+        self.downsample_residual = DownSampleConv2D(input_channels, kernel_size=1, n_filters=n_filters, padding=0)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
