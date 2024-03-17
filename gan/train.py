@@ -76,7 +76,7 @@ def train_model(
     torch.backends.cudnn.benchmark = True # speed up training
     ds_transforms = build_transforms()
     train_loader = torch.utils.data.DataLoader(
-        Dataset(root="../datasets/CUB_200_2011_32", transform=ds_transforms),
+        Dataset(root="/content/datasets/CUB_200_2011_32", transform=ds_transforms),
         batch_size=batch_size,
         shuffle=True,
         num_workers=4,
@@ -109,8 +109,7 @@ def train_model(
                 # 2. Compute discriminator output on the train batch.
                 # 3. Compute the discriminator output on the generated data.
                 ##################################################################
-                z = torch.randn(batch_size, z_dimension, device="cuda")
-                fake_batch = gen(z)
+                fake_batch = gen(train_batch.shape[0])
                 discrim_real = disc(train_batch)
                 discrim_fake = disc(fake_batch)
 
@@ -122,8 +121,7 @@ def train_model(
                 # TODO 1.5 Compute the interpolated batch and run the
                 # discriminator on it.
                 ###################################################################
-                epsilon = torch.rand(batch_size, 1, 1, 1, device="cuda")
-                epsilon = epsilon.expand_as(train_batch)
+                epsilon = torch.rand((1)).to(device=train_batch.device)
                 
                 # Compute interpolated batch
                 interp = epsilon * train_batch + (1 - epsilon) * fake_batch.detach()
@@ -150,8 +148,7 @@ def train_model(
                     # TODO 1.2: Compute generator and discriminator output on
                     # generated data.
                     ###################################################################
-                    z = torch.randn(batch_size, latent_dim, device="cuda")
-                    fake_batch = gen(z)
+                    fake_batch = gen(train_batch.shape[0])
                     discrim_fake = disc(fake_batch)
                     ##################################################################
                     #                          END OF YOUR CODE                      #
@@ -172,7 +169,7 @@ def train_model(
                         # Make sure they lie in the range [0, 1]!
                         ##################################################################
                         
-                        z = torch.randn(100, latent_dim, device="cuda")  # Generate 100 samples, adjust `latent_dim` accordingly.
+                        z = train_batch.shape[0] # Generate 100 samples, adjust `latent_dim` accordingly.
                         generated_samples = gen(z)
                         generated_samples = (generated_samples + 1) / 2  # Rescale images to [0, 1]
                         
