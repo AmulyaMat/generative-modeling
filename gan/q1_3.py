@@ -29,8 +29,17 @@ def compute_discriminator_loss(
     # fake loss is to compare predictions of fake images with tensor of zeros (ideal)
     ##################################################################
 
+    # loss_real = torch.ones_like(discrim_real
+    # loss_pred = torch.zeros_like(discrim_fake))
+
+    # concatenate loss read and pred
+
     real_loss = F.binary_cross_entropy_with_logits(discrim_real, torch.ones_like(discrim_real))
     fake_loss = F.binary_cross_entropy_with_logits(discrim_fake, torch.zeros_like(discrim_fake))
+
+    # concatenate real and fake loss
+
+    # loss = F.binaryloss(concatenated loss, concatenated labels)
     loss = real_loss + fake_loss
     ##################################################################
     #                          END OF YOUR CODE                      #
@@ -47,6 +56,7 @@ def compute_generator_loss(discrim_fake):
     ######
     
     loss = F.binary_cross_entropy_with_logits(discrim_fake, torch.ones_like(discrim_fake))
+    #loss =  -1 * torch.log(torch.sigmoid(discrim_fake)).mean())
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -55,8 +65,8 @@ def compute_generator_loss(discrim_fake):
 
 if __name__ == "__main__":
     args = get_args()
-    gen = Generator().cpu()
-    disc = Discriminator().cpu()
+    gen = Generator().cuda()
+    disc = Discriminator().cuda()
     prefix = "data_gan/"
     os.makedirs(prefix, exist_ok=True)
 
