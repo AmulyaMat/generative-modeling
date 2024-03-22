@@ -56,6 +56,7 @@ def interpolate_latent_space(gen, path):
 
     # Save the images in a grid
     save_image(images, path, nrow=10)
+
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
