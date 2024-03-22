@@ -55,8 +55,8 @@ def compute_generator_loss(discrim_fake):
 
 if __name__ == "__main__":
     args = get_args()
-    gen = Generator().cuda()
-    disc = Discriminator().cuda()
+    gen = Generator().cpu()
+    disc = Discriminator().cpu()
     prefix = "data_gan/"
     os.makedirs(prefix, exist_ok=True)
 
