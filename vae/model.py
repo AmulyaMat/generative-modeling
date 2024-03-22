@@ -33,10 +33,8 @@ class Encoder(nn.Module):
         nn.ReLU(),
         nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
         )
-        
-        self.conv_out_dim = input_shape[1] // 8 * input_shape[2] // 8 * 256
 
-        #such that output dimension is self.latent_dim 2.1
+        self.conv_out_dim = torch.tensor([256, input_shape[1]//8, input_shape[2]//8]) 
         self.fc = nn.Linear(self.conv_out_dim, self.latent_dim)
         
         ##################################################################
@@ -64,8 +62,8 @@ class VAEEncoder(Encoder):
         # 2*self.latent_dim
         ##################################################################
         self.conv_out_dim = input_shape[1] // 8 * input_shape[2] // 8 * 256
-        self.fc = nn.Linear(self.conv_out_dim, 2*latent_dim)
-        self.latent_dim = latent_dim
+        self.fc = nn.Linear(torch.prod(self.conv_out_dim), 2*self.latent_dim) 
+
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -113,8 +111,7 @@ class Decoder(nn.Module):
         # TODO 2.1: Set up the network layers. First, compute
         # self.base_size, then create the self.fc and self.deconvs.
         ##################################################################
-        self.base_size = (256, 4, 4)
-        self.fc = nn.Linear(latent_dim, np.prod(self.base_size))
+        self.base_size = [256, output_shape[1]//8, output_shape[2]//8]
 
         self.deconvs = nn.Sequential(
             nn.ReLU(),
@@ -126,6 +123,7 @@ class Decoder(nn.Module):
             nn.ReLU(),
             nn.Conv2d(32, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
         )
+        self.fc = nn.Linear(self.latent_dim, self.base_size[0]*self.base_size[1]*self.base_size[2])
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
