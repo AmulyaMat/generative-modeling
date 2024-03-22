@@ -48,15 +48,15 @@ class DiffusionModel(nn.Module):
         # TODO 3.1: Compute the coefficients for the mean.
         ##################################################################
         # This is coefficient of x_0 in the DDPM section
-        self.posterior_mean_coef1 = None
+        self.posterior_mean_coef1 = torch.sqrt(self.alphas_cumprod)*(1 - self.alphas_cumprod_prev)/(1 - self.alphas_cumprod)
         # This is coefficient of x_t in the DDPM section
-        self.posterior_mean_coef2 = None
+        self.posterior_mean_coef2 = torch.sqrt(self.alphas_cumprod_prev)*self.betas/(1 - self.alphas_cumprod)
 
         ##################################################################
         # TODO 3.1: Compute posterior variance.
         ##################################################################
         # Calculations for posterior q(x_{t-1} | x_t, x_0) in DDPM
-        self.posterior_variance = None
+        self.posterior_variance = self.betas*(1 - self.alphas_cumprod_prev)/(1 - self.alphas_cumprod)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -88,8 +88,9 @@ class DiffusionModel(nn.Module):
         # Hint: You can use extract function from utils.py. See
         # get_posterior_parameters() for usage examples.
         ##################################################################
-        pred_noise = None
-        x_0 = None
+        pred_noise = self.model(x_t, t)
+        x_0 = extract(self.x_0_pred_coef_1, t, x_t.shape) * x_t + extract(self.x_0_pred_coef_2, t, pred_noise.shape) * pred_noise
+        x_0 = torch.clamp(x_0, min=-1, max=1)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -104,8 +105,10 @@ class DiffusionModel(nn.Module):
         # Hint: To do this, you will need a predicted x_0. You should've
         # already implemented a function to give you x_0 above!
         ##################################################################
-        pred_img = None
-        x_0 = None
+        x_0 = self.model_predictions(x, t)[-1]
+        mu, var, log_var_clip = self.get_posterior_parameters(x_0, x, t)
+        z = torch.randn(mu.shape) if t.all() > 0 else 0
+        pred_img = mu + torch.sqrt(var)*z.cuda()
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
