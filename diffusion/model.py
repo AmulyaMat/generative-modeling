@@ -34,7 +34,7 @@ class DiffusionModel(nn.Module):
         # previous timesteps.
         ##################################################################
         self.alphas_cumprod = torch.cumprod(alphas, dim=0)
-        self.alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value = 1.)
+        self.alphas_cumprod_prev = self.alphas_cumprod / alphas
 
         ##################################################################
         # TODO 3.1: Pre-compute values needed for forward process.
