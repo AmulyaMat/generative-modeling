@@ -34,7 +34,9 @@ class Encoder(nn.Module):
         nn.Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
         )
 
-        self.conv_out_dim = torch.tensor([256, input_shape[1]//8, input_shape[2]//8]) 
+        #self.conv_out_dim = [256, input_shape[1]//8, input_shape[2]//8]
+        self.conv_out_dim = 256 * (input_shape[1] // 8) * (input_shape[2] // 8)
+      
         self.fc = nn.Linear(self.conv_out_dim, self.latent_dim)
         
         ##################################################################
@@ -62,7 +64,7 @@ class VAEEncoder(Encoder):
         # 2*self.latent_dim
         ##################################################################
         self.conv_out_dim = input_shape[1] // 8 * input_shape[2] // 8 * 256
-        self.fc = nn.Linear(torch.prod(self.conv_out_dim), 2*self.latent_dim) 
+        self.fc = nn.Linear((self.conv_out_dim), 2*self.latent_dim) 
 
         ##################################################################
         #                          END OF YOUR CODE                      #
@@ -81,7 +83,7 @@ class VAEEncoder(Encoder):
         x = self.fc(x)
         # print("SHould be Bx 2*1024: ", x.shape)
         mu = x[:,:self.latent_dim]
-        log_std = x[:,self.latent_dim:])
+        log_std = x[:,self.latent_dim:]
         
         ##################################################################
         #                          END OF YOUR CODE                      #
@@ -134,7 +136,7 @@ class Decoder(nn.Module):
         # TODO 2.1: Forward pass through the network, first through
         # self.fc, then self.deconvs.
         ##################################################################
-        x = self.fc(x)
+        x = self.fc(z)
         x = x.reshape(-1, self.base_size[0], self.base_size[1], self.base_size[2])
         x = self.deconvs(x)
         return x
