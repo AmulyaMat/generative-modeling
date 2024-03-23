@@ -19,7 +19,7 @@ def ae_loss(model, x):
     # TODO 2.2: Fill in MSE loss between x and its reconstruction.
     #################################################################
     recon = model.decoder(model.encoder(x))
-    loss = 1/2*F.mse_loss(recon, x, reduction = "sum"))
+    loss = 1/2*F.mse_loss(recon, x, reduction = "sum")
     loss = loss/x.shape[0]
     
     ##################################################################
