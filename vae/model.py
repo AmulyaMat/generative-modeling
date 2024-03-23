@@ -73,8 +73,8 @@ class VAEEncoder(Encoder):
         # TODO 2.1: Forward pass through the network, should return a
         # tuple of 2 tensors, mu and log_std
         ##################################################################
-        mu = None
-        log_std = None
+        # mu = None
+        # log_std = None
 
         x = self.convs(x)
         x = x.reshape(x.shape[0], -1)
