@@ -135,21 +135,35 @@ class DiffusionModel(nn.Module):
         # TODO 3.2: Compute the output image for a single step of the DDIM
         # sampling process.
         ##################################################################
-        # Step 1: Predict x_0 and the additive noise for tau_i
-        x_0 = None
+        n = torch.randn_like(img)
 
+        tau_i = torch.tensor([tau_i] * batch, device=device, dtype=torch.long)
+        
+
+        pred_noise, x_0 = model_predictions(img, tau_i)
+
+        # Handle cases for tau_isub1 based on Piazza discussion for Q3 (ref: post @139_f7)
+        if tau_isub1 < 0:
+            #n = torch.randn_like(img).cuda()
+            tau_isub1 = 0
+            
+        else:
+            return img, x_0
+        tau_isub1 = torch.full((batch,), tau_isub1, device=self.device, dtype=torch.long)
+            
         # Step 2: Extract \alpha_{\tau_{i - 1}} and \alpha_{\tau_{i}}
-        pass
+        alpha_i, alpha_isub1 = extract(alphas_cumprod, tau_i, x_0.shape), extract(alphas_cumprod, tau_isub1, x_0.shape)
 
         # Step 3: Compute \sigma_{\tau_{i}}
-        pass
+        sigma_i = eta*(1 - alpha_isub1)*extract(self.betas, tau_isub1, x_0.shape)/(1-alpha_i)
 
         # Step 4: Compute the coefficient of \epsilon_{\tau_{i}}
-        pass
+        coefficient = torch.sqrt(1-alpha_isub1-sigma_i)
 
         # Step 5: Sample from q(x_{\tau_{i - 1}} | x_{\tau_t}, x_0)
         # HINT: Use the reparameterization trick
-        img = None
+        U_i = torch.sqrt(alpha_isub1)*x_0 + coefficient*pred_noise
+        img = U_i + torch.sqrt(sigma_i)*n
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
