@@ -15,8 +15,8 @@ def get_fid(gen, dataset_name, dataset_resolution, z_dimension, batch_size, num_
     # Note: The output must be in the range [0, 255]!
     ##################################################################
     def gen_fn(z):
-        z = torch.randn(batch_size, 3, dataset_resolution, dataset_resolution).cuda()
-        diffusion_sampler_out = gen.sample_given_z(z, z.shape)*255
+        shape = (batch_size, 3, dataset_resolution, dataset_resolution)
+        diffusion_sampler_out = gen.sample_given_z(z, shape)*255
         return diffusion_sampler_out
 
     
